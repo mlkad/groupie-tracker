@@ -1,0 +1,20 @@
+{{define "title"}}Artists{{end}}
+
+{{define "main"}}
+<div class="head">
+  <h1 class="page-title">Find your next favorite artist.</h1>
+  <p class="stamp">SAME BANDS<br>DIFFERENT<br>CITIES</p>
+</div>
+
+{{template "searchbar" .}}
+
+<p class="result-count">{{len .Artists}} bands and solo acts</p>
+
+{{if .Artists}}
+<ul class="grid">
+  {{range .Artists}}{{template "card" .}}{{end}}
+</ul>
+{{else}}
+<p class="empty">No artists found.</p>
+{{end}}
+{{end}}

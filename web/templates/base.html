@@ -1,0 +1,72 @@
+{{define "base"}}
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{template "title" .}} · Groupie Tracker</title>
+<link rel="stylesheet" href="/static/css/main.css">
+</head>
+<body>
+<div class="layout">
+
+<aside class="sidebar">
+  <div>
+    <a class="brand" href="/">Groupie<span>Tracker</span></a>
+    <p class="tagline">music lives everywhere</p>
+  </div>
+
+  <nav class="nav">
+    <a href="/" class="active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Artists
+    </a>
+  </nav>
+
+  <p class="quote">“Good<br>music<br>finds<br>good people.”</p>
+</aside>
+
+<main class="main">
+  {{template "main" .}}
+</main>
+
+</div>
+<script src="/static/js/search.js" defer></script>
+</body>
+</html>
+{{end}}
+
+{{define "searchbar"}}
+<form class="search" action="/search" method="get" role="search" autocomplete="off">
+  <div class="search-box">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+    <input type="search" id="q" name="q" placeholder="Search artists, members, cities…" value="{{.Query}}" aria-label="Search">
+    <button type="button" class="search-clear" id="clear" aria-label="Clear">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div id="suggestions" class="suggestions" hidden></div>
+</form>
+{{end}}
+
+{{define "card"}}
+<li class="card">
+  <a href="/artist/{{.ID}}">
+    <div class="card-media">
+      <img src="{{.Image}}" alt="{{.Name}}" loading="lazy">
+    </div>
+    <div class="card-body">
+      <h2>{{.Name}}</h2>
+      <div class="card-foot">
+        <dl class="meta">
+          <div><dt>Formed</dt><dd>{{.CreationDate}}</dd></div>
+          <div><dt>Members</dt><dd>{{len .Members}}</dd></div>
+        </dl>
+        <span class="go">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </span>
+      </div>
+    </div>
+  </a>
+</li>
+{{end}}
