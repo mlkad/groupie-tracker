@@ -1,6 +1,9 @@
 package server
 
-import "strings"
+import (
+	"strconv"
+	"strings"
+)
 
 func cleanDate(s string) string {
 	return strings.TrimPrefix(s, "*")
@@ -21,4 +24,20 @@ func formatLocation(s string) string {
 		out = append(out, strings.Join(words, " "))
 	}
 	return strings.Join(out, ", ")
+}
+
+func atoiFn(s string, fallback int) int {
+	v, err := strconv.Atoi(s)
+	if err != nil {
+		return fallback
+	}
+	return v
+}
+
+func selectedSet(values []string) map[string]bool {
+	set := make(map[string]bool, len(values))
+	for _, v := range values {
+		set[v] = true
+	}
+	return set
 }

@@ -20,7 +20,7 @@ func New(cache *api.Cache) (*Server, error) {
 	templates := make(map[string]*template.Template)
 
 	for _, page := range pages {
-		t, err := template.ParseFiles("web/templates/base.html", "web/templates/"+page)
+		t, err := template.New("base.html").Funcs(template.FuncMap{"formatLocation": formatLocation}).ParseFiles("web/templates/base.html", "web/templates/"+page)
 		if err != nil {
 			return nil, fmt.Errorf("parsing %s: %w", page, err)
 		}
@@ -39,6 +39,7 @@ func (s *Server) Routes() http.Handler {
 	mux.HandleFunc("GET /artist/{id}", s.artist)
 	mux.HandleFunc("GET /search", s.search)
 	mux.HandleFunc("GET /suggest", s.suggest)
+	mux.HandleFunc("GET /filter", s.filter)
 
 	fs := http.FileServer(http.Dir("web/static"))
 	mux.Handle("GET /static/", http.StripPrefix("/static/", fs))

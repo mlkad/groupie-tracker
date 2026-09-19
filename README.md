@@ -35,15 +35,31 @@ go test -race ./...
 53 tests, none of which call the external API — a local `httptest.Server`
 is used instead.
 
+## API Structure
+
+The application consumes the [Groupie Trackers API](https://groupietrackers.herokuapp.com/api) which consists of four main endpoints:
+
+- **artists** — band/artist information (names, image, creation year, first album date, members)
+- **locations** — last and upcoming concert locations
+- **dates** — last and upcoming concert dates
+- **relation** — links artists with their concert dates and locations
+
 ## Features
 
-- **Home** — grid of all artists
+- **Home** — grid of all artists with data visualization
 - **Artist page** — photo, members, creation year, first album,
   and a "city → concert dates" table
-- **Search** by six criteria: band name, members, creation year,
-  first album date, concert city, concert date
-- **Live suggestions** — while typing, the browser requests
-  `/suggest?q=...` and shows matches without reloading the page
+- **Search** by band name with live suggestions — real-time client-server event: while typing, 
+  the browser requests `/suggest?q=...` and shows matches without reloading the page 
+  (demonstrates client-initiated request-response communication)
+- **Advanced filters** — filter artists by:
+  - Creation year range (from-to sliders)
+  - First album date range (from-to sliders)
+  - Number of band members (range slider with count display)
+  - Concert locations (searchable checklist, collapsible, "show more")
+  - Sorting (by name ascending/descending, by creation year)
+- **Responsive design** — collapsible filter panel on mobile, full sidebar on desktop
+- **Debounced filter application** — filters update results asynchronously without page reload
 
 ## Structure
 

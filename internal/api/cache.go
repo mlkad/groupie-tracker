@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -20,6 +21,21 @@ type Cache struct {
 	locations []models.Location
 	dates     []models.Date
 	relations []models.Relation
+}
+
+type ArtistFilter struct {
+	CreationFrom int
+	CreationTo   int
+
+	AlbumFrom int
+	AlbumTo   int
+
+	MembersFrom int
+	MembersTo   int
+
+	Locations []string
+
+	MembersExact int
 }
 
 func NewCache(client *Client) *Cache {
@@ -105,14 +121,15 @@ func (c *Cache) Search(q string) []models.Artist {
 
 	var found []models.Artist
 
+	//фильтр по именам артистов
 	for _, a := range c.artists {
-		if strings.Contains(strings.ToLower(a.Name), q) { //по имени
+		if strings.Contains(strings.ToLower(a.Name), q) {
 			found = append(found, a)
 			continue
 		}
 
 		matched := false
-		for _, m := range a.Members { //по участникам
+		for _, m := range a.Members {
 			if strings.Contains(strings.ToLower(m), q) {
 				matched = true
 				break
@@ -123,16 +140,19 @@ func (c *Cache) Search(q string) []models.Artist {
 			continue
 		}
 
-		if strings.Contains(strconv.Itoa(a.CreationDate), q) { //дата
+		//фильтр по дате создания группы
+		if strings.Contains(strconv.Itoa(a.CreationDate), q) {
 			found = append(found, a)
 			continue
 		}
 
+		//фильтр по дате первого альбома
 		if strings.Contains(a.FirstAlbum, q) {
 			found = append(found, a)
 			continue
 		}
 
+		//фильтр по локации
 		for _, l := range c.locations {
 			if l.ID != a.ID {
 				continue
@@ -150,11 +170,12 @@ func (c *Cache) Search(q string) []models.Artist {
 			continue
 		}
 
+		//фильтр по дате концерта
 		for _, d := range c.dates {
 			if d.ID != a.ID {
 				continue
 			}
-			for _, date := range d.Dates { //
+			for _, date := range d.Dates {
 				if strings.Contains(date, q) {
 					matched = true
 					break
@@ -169,4 +190,98 @@ func (c *Cache) Search(q string) []models.Artist {
 	}
 
 	return found
+}
+
+func firstAlbumInRange(date string, from, to int) bool {
+	parts := strings.Split(date, "-")
+	if len(parts) != 3 {
+		return false
+	}
+
+	year, err := strconv.Atoi(parts[2])
+	if err != nil {
+		return false
+	}
+
+	return year >= from && year <= to
+}
+
+func (c *Cache) Filter(f ArtistFilter) []models.Artist {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	res := make([]models.Artist, 0)
+
+	for _, artist := range c.artists {
+		if artist.CreationDate < f.CreationFrom || artist.CreationDate > f.CreationTo {
+			continue
+		}
+
+		if f.MembersExact > 0 {
+			if len(artist.Members) != f.MembersExact {
+				continue
+			}
+		} else if len(artist.Members) < f.MembersFrom || len(artist.Members) > f.MembersTo {
+			continue
+		}
+
+		if !firstAlbumInRange(artist.FirstAlbum, f.AlbumFrom, f.AlbumTo) {
+			continue
+		}
+
+		if len(f.Locations) != 0 {
+			matched := false
+			for _, loc := range f.Locations {
+				if c.hasLocation(artist.ID, loc) {
+					matched = true
+					break
+				}
+			}
+			if !matched {
+				continue
+			}
+		}
+
+		res = append(res, artist)
+	}
+
+	return res
+}
+
+func (c *Cache) hasLocation(id int, query string) bool {
+	query = strings.ToLower(query)
+
+	for _, location := range c.locations {
+		if location.ID != id {
+			continue
+		}
+
+		for _, loc := range location.Locations {
+			if strings.Contains(strings.ToLower(loc), query) {
+				return true
+			}
+		}
+		return false
+	}
+	return false
+}
+
+func (c *Cache) AllLocations() []string {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	seen := make(map[string]bool)
+	for _, l := range c.locations {
+		for _, loc := range l.Locations {
+			seen[loc] = true
+		}
+	}
+
+	out := make([]string, 0, len(seen))
+	for loc := range seen {
+		out = append(out, loc)
+	}
+	sort.Strings(out)
+
+	return out
 }

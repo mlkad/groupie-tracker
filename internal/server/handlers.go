@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/json"
 	"errors"
+	"math"
 	"net/http"
 	"sort"
 	"strconv"
@@ -12,8 +13,10 @@ import (
 
 func (s *Server) home(w http.ResponseWriter, r *http.Request) {
 	data := homeData{
-		Artists: s.cache.Artists(),
-		Query:   "",
+		Artists:   s.cache.Artists(),
+		Query:     "",
+		Locations: s.cache.AllLocations(),
+		Selected:  map[string]bool{},
 	}
 	s.render(w, http.StatusOK, "home.html", data)
 }
@@ -96,4 +99,63 @@ func (s *Server) suggest(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(out); err != nil {
 		s.serverError(w, err)
 	}
+}
+
+func (s *Server) filter(w http.ResponseWriter, r *http.Request) {
+	q := r.URL.Query()
+
+	creationFrom := q.Get("creation_from")
+	creationTo := q.Get("creation_to")
+	albumFrom := q.Get("album_from")
+	albumTo := q.Get("album_to")
+	membersFrom := q.Get("members_from")
+	membersTo := q.Get("members_to")
+	membersExact := q.Get("members_exact")
+	location := q["location"]
+	sortBy := q.Get("sort")
+
+	f := api.ArtistFilter{
+		CreationFrom: atoiFn(creationFrom, 0),
+		CreationTo:   atoiFn(creationTo, math.MaxInt),
+		AlbumFrom:    atoiFn(albumFrom, 0),
+		AlbumTo:      atoiFn(albumTo, math.MaxInt),
+		MembersFrom:  atoiFn(membersFrom, 0),
+		MembersTo:    atoiFn(membersTo, math.MaxInt),
+		MembersExact: atoiFn(membersExact, 0),
+		Locations:    location,
+	}
+
+	artists := s.cache.Filter(f)
+
+	switch sortBy {
+	case "name-desc":
+		sort.Slice(artists, func(i, j int) bool {
+			return artists[i].Name > artists[j].Name
+		})
+	case "creation-asc":
+		sort.Slice(artists, func(i, j int) bool {
+			return artists[i].CreationDate < artists[j].CreationDate
+		})
+	default:
+		sort.Slice(artists, func(i, j int) bool {
+			return artists[i].Name < artists[j].Name
+		})
+	}
+
+	data := homeData{
+		Artists:      artists,
+		CreationFrom: creationFrom,
+		CreationTo:   creationTo,
+		AlbumFrom:    albumFrom,
+		AlbumTo:      albumTo,
+		MembersFrom:  membersFrom,
+		MembersTo:    membersTo,
+		MembersExact: membersExact,
+		Sort:         sortBy,
+		Locations:    s.cache.AllLocations(),
+		Selected:     selectedSet(location),
+		Query:        "",
+	}
+
+	s.render(w, http.StatusOK, "home.html", data)
 }

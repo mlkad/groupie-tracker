@@ -1,18 +1,13 @@
 {{define "title"}}Search{{end}}
 
 {{define "main"}}
-<div class="head">
-  <h1 class="page-title">Find your next favorite artist.</h1>
-  <p class="stamp">SAME BANDS<br>DIFFERENT<br>CITIES</p>
+<div class="results-head">
+  {{if .Query}}
+  <p class="result-count"><strong>{{len .Artists}}</strong> result(s) for “{{.Query}}”</p>
+  {{else}}
+  <p class="result-count">Type a band name, a member, a city or a year.</p>
+  {{end}}
 </div>
-
-{{template "searchbar" .}}
-
-{{if .Query}}
-<p class="result-count">{{len .Artists}} result(s) for “{{.Query}}”</p>
-{{else}}
-<p class="result-count">Type a band name, a member, a city or a year.</p>
-{{end}}
 
 {{if .Artists}}
 <ul class="grid">
