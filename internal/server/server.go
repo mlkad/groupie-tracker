@@ -35,11 +35,11 @@ func New(cache *api.Cache) (*Server, error) {
 func (s *Server) Routes() http.Handler {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("GET /{$}", s.home)
+	mux.HandleFunc("GET /{$}", s.artists)
 	mux.HandleFunc("GET /artist/{id}", s.artist)
 	mux.HandleFunc("GET /search", s.search)
 	mux.HandleFunc("GET /suggest", s.suggest)
-	mux.HandleFunc("GET /filter", s.filter)
+	mux.HandleFunc("GET /filter", s.artists)
 
 	fs := http.FileServer(http.Dir("web/static"))
 	mux.Handle("GET /static/", http.StripPrefix("/static/", fs))

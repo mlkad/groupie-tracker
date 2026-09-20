@@ -11,16 +11,6 @@ import (
 	"github.com/mlkad/groupie-tracker/internal/api"
 )
 
-func (s *Server) home(w http.ResponseWriter, r *http.Request) {
-	data := homeData{
-		Artists:   s.cache.Artists(),
-		Query:     "",
-		Locations: s.cache.AllLocations(),
-		Selected:  map[string]bool{},
-	}
-	s.render(w, http.StatusOK, "home.html", data)
-}
-
 func (s *Server) artist(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
@@ -101,7 +91,7 @@ func (s *Server) suggest(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *Server) filter(w http.ResponseWriter, r *http.Request) {
+func (s *Server) artists(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 
 	creationFrom := q.Get("creation_from")
@@ -158,6 +148,7 @@ func (s *Server) filter(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
+	totalArtists := len(artists)
 	const perPage = 8
 
 	page := atoiFn(q.Get("page"), 1)
@@ -166,6 +157,7 @@ func (s *Server) filter(w http.ResponseWriter, r *http.Request) {
 
 	data := homeData{
 		Artists:      artistsPage,
+		TotalArtists: totalArtists,
 		Page:         page,
 		TotalPages:   totalPages,
 		CreationFrom: creationFrom,

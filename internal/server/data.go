@@ -3,10 +3,11 @@ package server
 import "github.com/mlkad/groupie-tracker/internal/models"
 
 type homeData struct {
-	Artists    []models.Artist
-	Page       int
-	TotalPages int
-	Query      string
+	Artists      []models.Artist
+	TotalArtists int
+	Page         int
+	TotalPages   int
+	Query        string
 
 	CreationMin, CreationMax int
 	AlbumMin, AlbumMax       int
