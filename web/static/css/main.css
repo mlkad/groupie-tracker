@@ -726,16 +726,21 @@ button { font-family: inherit; }
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   margin-top: 38px;
 }
 
-.page-numbers { display: flex; align-items: center; gap: 8px; }
+.page-numbers { display: flex; align-items: center; gap: 6px; }
 
+/* Все кнопки — жёстко одинаковый квадрат 36×36, независимо от того,
+   что внутри (стрелка, "1" или "12") — иначе border-radius: 50% плющит
+   в овал, а разная ширина цифр заставляет ряд "прыгать". */
 .page-arrow,
 .page-num {
-  min-width: 36px;
+  flex: none;
+  width: 36px;
   height: 36px;
+  padding: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -744,12 +749,12 @@ button { font-family: inherit; }
   background: var(--card);
   color: var(--text);
   font-size: 0.88rem;
+  line-height: 1;
   cursor: pointer;
-  padding: 0 11px;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
 
-.page-arrow svg { width: 15px; height: 15px; }
+.page-arrow svg { width: 15px; height: 15px; flex: none; }
 .page-arrow:hover:not(:disabled),
 .page-num:hover:not(.current) { background: var(--line-soft); }
 
@@ -760,13 +765,6 @@ button { font-family: inherit; }
   border-color: var(--accent);
   color: #fff;
   font-weight: 600;
-}
-
-.page-dots {
-  min-width: 22px;
-  text-align: center;
-  color: var(--muted);
-  user-select: none;
 }
 
 .showing {

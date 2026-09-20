@@ -203,9 +203,82 @@
   let pending = null;
   let timer = null;
 
+  const pageInput = document.getElementById("pageInput");
+
+  function resetPage() {
+    if (pageInput) pageInput.value = "1";
+  }
+
   function applyFilters(immediate) {
     clearTimeout(timer);
     timer = setTimeout(request, immediate ? 0 : DEBOUNCE_MS);
+  }
+
+  /* Клик по стрелке пагинации не должен ждать дебаунс и не трогает page —
+     он сам его выставляет. */
+  function goToPage(page) {
+    if (pageInput) pageInput.value = String(page);
+    applyFilters(true);
+  }
+
+  /* Окно фиксированной ширины (WINDOW номеров), которое едет вместе с
+     текущей страницей и упирается в края — количество кнопок в ряду
+     всегда одно и то же, ряд не "прыгает" по ширине при листании. */
+  const PAGE_WINDOW = 5;
+
+  function pageRange(current, total) {
+    if (total <= PAGE_WINDOW) {
+      const all = [];
+      for (let p = 1; p <= total; p++) all.push(p);
+      return all;
+    }
+
+    let start = current - Math.floor(PAGE_WINDOW / 2);
+    start = Math.max(1, Math.min(start, total - PAGE_WINDOW + 1));
+
+    const range = [];
+    for (let p = start; p < start + PAGE_WINDOW; p++) range.push(p);
+    return range;
+  }
+
+  function renderPageNumbers(current, total) {
+    const wrap = document.getElementById("pageNumbers");
+    if (!wrap) return;
+
+    wrap.innerHTML = "";
+
+    pageRange(current, total).forEach(function (p) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "page-num" + (p === current ? " current" : "");
+      btn.textContent = String(p);
+      btn.setAttribute("aria-label", "Page " + p);
+      if (p === current) btn.setAttribute("aria-current", "page");
+      btn.addEventListener("click", function () {
+        if (p !== current) goToPage(p);
+      });
+
+      wrap.appendChild(btn);
+    });
+  }
+
+  function bindPagination() {
+    const nav = document.getElementById("pagination");
+    if (!nav) return;
+
+    const current = parseInt(nav.dataset.current, 10) || 1;
+    const total = parseInt(nav.dataset.total, 10) || 1;
+    const prev = nav.querySelector(".page-prev");
+    const next = nav.querySelector(".page-next");
+
+    if (prev) prev.addEventListener("click", function () {
+      if (current > 1) goToPage(current - 1);
+    });
+    if (next) next.addEventListener("click", function () {
+      if (current < total) goToPage(current + 1);
+    });
+
+    renderPageNumbers(current, total);
   }
 
   function request() {
@@ -232,7 +305,12 @@
           .parseFromString(html, "text/html")
           .getElementById("results");
 
-        if (fresh) results.replaceWith(fresh);
+        if (fresh) {
+          results.replaceWith(fresh);
+          /* replaceWith меняет узел в DOM — старые обработчики на #pagination
+             улетают вместе со старым узлом, вешаем заново. */
+          bindPagination();
+        }
         history.replaceState(null, "", url);
       })
       .catch(function (err) {
@@ -242,23 +320,35 @@
 
   filters.addEventListener("submit", function (e) {
     e.preventDefault();
+    resetPage();
     applyFilters(true);
     setPanel(false);
   });
 
   filters.addEventListener("input", function (e) {
     /* Ползунок шлёт input на каждый пиксель — ждём, пока пользователь остановится. */
-    if (e.target.type === "range" || e.target.type === "number") applyFilters(false);
+    if (e.target.type === "range" || e.target.type === "number") {
+      resetPage();
+      applyFilters(false);
+    }
   });
 
   filters.addEventListener("change", function (e) {
-    if (e.target.type === "checkbox") applyFilters(true);
+    if (e.target.type === "checkbox") {
+      resetPage();
+      applyFilters(true);
+    }
   });
 
   /* Селект сортировки живёт вне формы (привязан через form=), ловим его отдельно. */
   document.addEventListener("change", function (e) {
-    if (e.target.id === "sortSelect") applyFilters(true);
+    if (e.target.id === "sortSelect") {
+      resetPage();
+      applyFilters(true);
+    }
   });
+
+  bindPagination();
 
   const resetLink = filters.querySelector(".reset-btn");
   if (resetLink) {

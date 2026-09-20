@@ -128,6 +128,10 @@ func (s *Server) filter(w http.ResponseWriter, r *http.Request) {
 	artists := s.cache.Filter(f)
 
 	switch sortBy {
+	case "name-asc":
+		sort.Slice(artists, func(i, j int) bool {
+			return artists[i].Name < artists[j].Name
+		})
 	case "name-desc":
 		sort.Slice(artists, func(i, j int) bool {
 			return artists[i].Name > artists[j].Name
@@ -136,14 +140,34 @@ func (s *Server) filter(w http.ResponseWriter, r *http.Request) {
 		sort.Slice(artists, func(i, j int) bool {
 			return artists[i].CreationDate < artists[j].CreationDate
 		})
+	case "creation-desc":
+		sort.Slice(artists, func(i, j int) bool {
+			return artists[i].CreationDate > artists[j].CreationDate
+		})
+	case "members-asc":
+		sort.Slice(artists, func(i, j int) bool {
+			return len(artists[i].Members) < len(artists[j].Members)
+		})
+	case "members-desc":
+		sort.Slice(artists, func(i, j int) bool {
+			return len(artists[i].Members) > len(artists[j].Members)
+		})
 	default:
 		sort.Slice(artists, func(i, j int) bool {
 			return artists[i].Name < artists[j].Name
 		})
 	}
 
+	const perPage = 8
+
+	page := atoiFn(q.Get("page"), 1)
+
+	artistsPage, totalPages := paginate(artists, page, perPage)
+
 	data := homeData{
-		Artists:      artists,
+		Artists:      artistsPage,
+		Page:         page,
+		TotalPages:   totalPages,
 		CreationFrom: creationFrom,
 		CreationTo:   creationTo,
 		AlbumFrom:    albumFrom,
