@@ -1,0 +1,19 @@
+{{define "title"}}Search{{end}}
+
+{{define "main"}}
+<div class="results-head">
+  {{if .Query}}
+  <p class="result-count"><strong>{{len .Artists}}</strong> result(s) for “{{.Query}}”</p>
+  {{else}}
+  <p class="result-count">Type a band name, a member, a city or a year.</p>
+  {{end}}
+</div>
+
+{{if .Artists}}
+<ul class="grid">
+  {{range .Artists}}{{template "card" .}}{{end}}
+</ul>
+{{else if .Query}}
+<p class="empty">Nothing matched “{{.Query}}”.</p>
+{{end}}
+{{end}}

@@ -1,0 +1,87 @@
+{{define "title"}}{{.Artist.Name}}{{end}}
+
+{{define "head"}}
+{{if .Concerts}}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+{{end}}
+{{end}}
+
+{{define "main"}}
+<nav class="crumbs">
+  <a href="/">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
+    Back to artists
+  </a>
+</nav>
+
+<article class="artist">
+  <div class="artist-photo">
+    <img src="{{.Artist.Image}}" alt="{{.Artist.Name}}">
+  </div>
+
+  <div class="artist-info">
+    <h1>{{.Artist.Name}}</h1>
+
+    <dl class="facts">
+      <div><dt>Formed</dt><dd>{{.Artist.CreationDate}}</dd></div>
+      <div><dt>First album</dt><dd>{{.Artist.FirstAlbum}}</dd></div>
+      <div><dt>Members</dt><dd>{{len .Artist.Members}}</dd></div>
+      <div><dt>Concerts</dt><dd>{{len .Concerts}}</dd></div>
+    </dl>
+  </div>
+</article>
+
+<section class="members">
+  <h2 class="section-title">Line-up</h2>
+  <ul class="chips">
+    {{range .Artist.Members}}<li>{{.}}</li>{{end}}
+  </ul>
+</section>
+
+{{if .Concerts}}
+<section class="concert-map">
+  <h2 class="section-title">Concert map</h2>
+  <div id="map" role="img" aria-label="Map of concert locations for {{.Artist.Name}}"></div>
+  <p class="map-note" id="mapNote" hidden></p>
+</section>
+{{end}}
+
+<section class="concerts">
+  <h2 class="section-title">Concert locations &amp; dates</h2>
+  {{if .Concerts}}
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr><th scope="col">Location</th><th scope="col">Dates</th></tr>
+      </thead>
+      <tbody>
+        {{range .Concerts}}
+        <tr>
+          <td class="loc">{{.Location}}</td>
+          <td>
+            <ul class="dates">
+              {{range .Dates}}<li>{{.}}</li>{{end}}
+            </ul>
+          </td>
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
+  </div>
+  {{else}}
+  <p class="empty">No concerts listed.</p>
+  {{end}}
+</section>
+{{end}}
+
+{{define "scripts"}}
+{{if .Concerts}}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+  window.gtConcerts = {{.Concerts}};
+</script>
+<script src="/static/js/map.js" defer></script>
+{{end}}
+{{end}}

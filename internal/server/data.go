@@ -1,0 +1,50 @@
+package server
+
+import "github.com/mlkad/groupie-tracker/internal/models"
+
+type homeData struct {
+	Artists      []models.Artist
+	TotalArtists int
+	Page         int
+	TotalPages   int
+	Query        string
+
+	CreationMin, CreationMax int
+	AlbumMin, AlbumMax       int
+	MembersMin, MembersMax   int
+
+	CreationFrom, CreationTo string
+	AlbumFrom, AlbumTo       string
+	MembersFrom, MembersTo   string
+	MembersExact             string
+
+	Sort string
+
+	Locations []string
+	Selected  map[string]bool
+}
+
+type concert struct {
+	Location string   `json:"location"`
+	Dates    []string `json:"dates"`
+	Lat      float64  `json:"lat"`
+	Lon      float64  `json:"lon"`
+	Found    bool     `json:"found"`
+}
+
+type artistData struct {
+	Artist   models.Artist
+	Concerts []concert
+	Query    string
+}
+
+type searchData struct {
+	Artists []models.Artist
+	Query   string
+}
+
+type suggestion struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+	Type string `json:"type"`
+}
